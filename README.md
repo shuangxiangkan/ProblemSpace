@@ -2,7 +2,7 @@
 
 > **Goal**: Systematically discover high-value, low-coverage research ideas in the program analysis space — treating idea discovery as a search problem, not an inspiration problem.
 
-The core intuition: apply **fuzzing methodology** to research idea generation.
+The core intuition: apply **fuzzing methodology** to research idea generation.  
 Papers / methods = seeds · Problem-space analysis = coverage modeling · Idea variants = mutations · Novelty + feasibility = oracle.
 
 ---
@@ -11,16 +11,30 @@ Papers / methods = seeds · Problem-space analysis = coverage modeling · Idea v
 
 ```
 ProblemSpace/
-├── problem-space.md          # Methodology & design notes
 ├── main.py                   # CLI entry point
 ├── requirements.txt
 ├── papers.db                 # SQLite — all retrieved papers (git-ignored)
+├── problem-space.md          # Methodology & design notes
 │
-└── literature_search/        # Sub-module 1: Paper retrieval
-    ├── state.py              # PaperRecord, PaperSearchState
-    ├── nodes.py              # arXiv / Semantic Scholar / OpenAlex nodes
-    ├── graph.py              # LangGraph search graph
-    ├── storage.py            # SQLite persistence + dedup
+├── models/                   # LLM factory (DeepSeek / OpenAI)
+│   └── __init__.py           # get_llm(provider)
+│
+├── problem_analysis/         # Sub-module 1: LLM keyword extraction
+│   ├── state.py              # KeywordAnalysisState
+│   ├── nodes.py              # analyze_query node (DeepSeek structured output)
+│   ├── graph.py              # build_problem_analysis_graph()
+│   └── __init__.py
+│
+├── literature_search/        # Sub-module 2: Paper retrieval
+│   ├── state.py              # PaperRecord, PaperSearchState
+│   ├── nodes.py              # arXiv / Semantic Scholar / OpenAlex nodes
+│   ├── graph.py              # build_literature_search_graph()
+│   ├── storage.py            # SQLite persistence + dedup
+│   └── __init__.py
+│
+└── research/                 # Top-level pipeline (combines sub-modules)
+    ├── state.py              # MainResearchState
+    ├── graph.py              # build_research_graph()
     └── __init__.py
 ```
 
@@ -28,6 +42,7 @@ ProblemSpace/
 
 | Module | Purpose |
 |---|---|
+| `problem_analysis/` | ✅ LLM extracts structured search keywords from a natural-language topic description |
 | `literature_search/` | ✅ Fetch & store papers from arXiv, Semantic Scholar, OpenAlex |
 | `paper_analysis/` | 🔲 LLM-powered classification, tagging, failure-mode extraction |
 | `idea_generation/` | 🔲 Mutation operators — generate idea seeds from gaps & blind spots |
@@ -42,10 +57,22 @@ ProblemSpace/
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Search and save to papers.db
-python main.py "program analysis" "static analysis" --max 30
+# Copy and fill in API keys
+cp .env.example .env
+```
 
-# Save to JSON for one-off inspection
+### Describe mode (recommended) — LLM extracts keywords automatically
+
+```bash
+# Describe your topic in natural language; the LLM generates precise compound keywords
+python main.py --describe "fault tolerance in dragonfly network topology" --max 10
+python main.py --describe "mutation testing for concurrent programs" --max 15 --output results.json
+```
+
+### Keyword mode — explicit keywords
+
+```bash
+python main.py "dragonfly fault tolerance" "fault-tolerant routing" --max 20
 python main.py "fuzzing seed generation" --max 20 --output results.json
 ```
 
@@ -55,7 +82,7 @@ python main.py "fuzzing seed generation" --max 20 --output results.json
 from literature_search import search, load_papers, update_status
 
 # Run the search graph: arXiv → Semantic Scholar → OpenAlex → SQLite
-papers = search(["program analysis", "taint analysis"], max_results_per_source=30)
+papers = search(["dragonfly fault tolerance", "fault-tolerant dragonfly"], max_results_per_source=20)
 
 # Query DB — fetch all pending papers for LLM analysis
 pending = load_papers(status="pending")
@@ -68,6 +95,26 @@ update_status(paper["doi"], "classified")
 
 ```
 pending  →  classified  →  analyzed
+```
+
+---
+
+## Pipeline (describe mode)
+
+```
+user description (natural language)
+        │
+        ▼
+  problem_analysis          LLM (DeepSeek) → required_keywords + optional_keywords
+        │
+        ▼
+  merge_keywords            required + optional → single keyword list
+        │
+        ▼
+  literature_search         arXiv → Semantic Scholar → OpenAlex (per-keyword OR search)
+        │
+        ▼
+  save_to_db                SQLite dedup & persist
 ```
 
 ---
@@ -88,10 +135,16 @@ Browse with [DB Browser for SQLite](https://sqlitebrowser.org/) or [TablePlus](h
 
 ---
 
-## Semantic Scholar API Key
+## API Keys (.env)
 
-Free tier is rate-limited (429). Apply for a free key at <https://www.semanticscholar.org/product/api> and set it as an env variable:
+Copy `.env.example` to `.env` and fill in your keys:
 
-```bash
-export S2_API_KEY="<your_key>"
 ```
+S2_API_KEY=...          # Semantic Scholar — apply at https://www.semanticscholar.org/product/api
+DEEPSEEK_API_KEY=...    # DeepSeek — https://platform.deepseek.com/
+LLM_PROVIDER=deepseek   # deepseek | openai
+```
+
+`S2_API_KEY` is optional but recommended — without it requests are rate-limited (HTTP 429).  
+`DEEPSEEK_API_KEY` is required for `--describe` mode.
+

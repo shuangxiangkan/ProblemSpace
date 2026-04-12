@@ -1,16 +1,20 @@
+import logging
+
 from langgraph.graph import END, StateGraph
 
 from .nodes import search_arxiv, search_openalex, search_semantic_scholar
 from .state import PaperSearchState
 from .storage import save_papers
 
+logger = logging.getLogger(__name__)
+
 
 def _save_to_db(state: PaperSearchState) -> dict:
     query = " ".join(state["keywords"])
     total = len(state["papers"])
-    print(f"[DB] Saving {total} papers (query: '{query}') ...")
+    logger.info("[DB] Saving %d papers (query: '%s') ...", total, query)
     inserted, skipped = save_papers(state["papers"], search_query=query)
-    print(f"[DB] Done — inserted={inserted}, skipped(dup)={skipped}.")
+    logger.info("[DB] Done — inserted=%d, skipped(dup)=%d.", inserted, skipped)
     return {}
 
 
@@ -30,5 +34,8 @@ def build_graph():
 
     return builder.compile()
 
+
+# Alias for use as a subgraph in the main research pipeline
+build_literature_search_graph = build_graph
 
 graph = build_graph()

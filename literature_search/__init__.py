@@ -1,9 +1,16 @@
-from .graph import graph
+import logging
+
+from .graph import build_literature_search_graph, graph
 from .state import PaperRecord, PaperSearchState
 from .storage import load_papers, save_papers, update_status
 
-__all__ = ["search", "graph", "PaperRecord", "PaperSearchState",
-           "load_papers", "save_papers", "update_status"]
+logger = logging.getLogger(__name__)
+
+__all__ = [
+    "search", "graph", "build_literature_search_graph",
+    "PaperRecord", "PaperSearchState",
+    "load_papers", "save_papers", "update_status",
+]
 
 
 def search(keywords: list[str], max_results_per_source: int = 20) -> list[PaperRecord]:
@@ -16,6 +23,6 @@ def search(keywords: list[str], max_results_per_source: int = 20) -> list[PaperR
     })
 
     for err in result.get("errors", []):
-        print(f"[WARN] {err}")
+        logger.warning("%s", err)
 
     return result["papers"]
