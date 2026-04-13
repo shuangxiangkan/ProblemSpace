@@ -33,7 +33,8 @@ from .state import PaperRecord
 DEFAULT_DB = Path(__file__).parent.parent / "papers.db"
 
 
-def _dedup_key(paper: PaperRecord) -> str:
+def dedup_key(paper: PaperRecord) -> str:
+    """Return a dedup key: DOI (normalized) or sha1(title)."""
     if paper.get("doi"):
         return paper["doi"].strip().lower()
     return hashlib.sha1(paper["title"].strip().lower().encode()).hexdigest()
@@ -82,7 +83,7 @@ def save_papers(
     inserted = skipped = 0
     with get_connection(db_path) as conn:
         for p in papers:
-            key = _dedup_key(p)
+            key = dedup_key(p)
             try:
                 conn.execute(
                     """

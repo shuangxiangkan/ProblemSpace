@@ -13,7 +13,7 @@ DEFAULT_GRAPH_DIR = PROJECT_ROOT / "visualization"
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from literature_search.graph import build_graph as build_literature_search_graph
+from literature_search.graph import build_literature_search_graph
 from problem_analysis.graph import build_problem_analysis_graph
 from research.graph import build_research_graph
 
@@ -192,21 +192,12 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.graph_name:
-        rendered = render_graph(
-            args.graph_name,
-            output_format=args.format,
-            expand_subgraphs=args.xray,
-        )
-        if args.output:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            if args.format in TEXT_FORMATS:
-                args.output.write_text(rendered, encoding="utf-8")
-            else:
-                args.output.write_bytes(rendered)
-            print(f"Saved {args.graph_name} graph to {args.output}")
-            return
-        if args.format == "png":
+        # Determine output path: explicit --output, or default for binary formats
+        output_path = args.output
+        if not output_path and args.format not in TEXT_FORMATS:
             output_path = args.output_dir / f"{args.graph_name}{_default_suffix(args.format)}"
+
+        if output_path:
             write_graph(
                 args.graph_name,
                 output_path,
@@ -214,8 +205,12 @@ def main() -> None:
                 expand_subgraphs=args.xray,
             )
             print(f"Saved {args.graph_name} graph to {output_path}")
-            return
-        print(rendered)
+        else:
+            print(render_graph(
+                args.graph_name,
+                output_format=args.format,
+                expand_subgraphs=args.xray,
+            ))
         return
 
     paths = write_project_graphs(

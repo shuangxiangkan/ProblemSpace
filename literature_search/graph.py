@@ -1,20 +1,12 @@
-import hashlib
 import logging
 
 from langgraph.graph import END, START, StateGraph
 
 from .nodes import search_arxiv, search_openalex, search_semantic_scholar
 from .state import PaperSearchState
-from .storage import save_papers
+from .storage import save_papers, dedup_key as _paper_dedup_key
 
 logger = logging.getLogger(__name__)
-
-
-def _paper_dedup_key(paper: dict) -> str:
-    doi = (paper.get("doi") or "").strip().lower()
-    if doi:
-        return doi
-    return hashlib.sha1(paper.get("title", "").strip().lower().encode()).hexdigest()
 
 
 def _dedup_papers(state: PaperSearchState) -> dict:
@@ -44,7 +36,7 @@ def _save_to_db(state: PaperSearchState) -> dict:
     return {}
 
 
-def build_graph():
+def build_literature_search_graph():
     builder = StateGraph(PaperSearchState)
 
     builder.add_node("arxiv", search_arxiv)
@@ -65,7 +57,12 @@ def build_graph():
     return builder.compile()
 
 
-# Alias for use as a subgraph in the main research pipeline
-build_literature_search_graph = build_graph
+def _get_graph():
+    """Lazily compiled graph singleton."""
+    global _compiled_graph
+    if _compiled_graph is None:
+        _compiled_graph = build_literature_search_graph()
+    return _compiled_graph
 
-graph = build_graph()
+
+_compiled_graph = None
