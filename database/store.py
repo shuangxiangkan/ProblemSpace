@@ -1,43 +1,33 @@
-"""SQLite-backed paper storage.
-
-Schema
-------
-papers
-  id            INTEGER PRIMARY KEY AUTOINCREMENT
-  dedup_key     TEXT UNIQUE          -- doi if available, else sha1(title.lower())
-  title         TEXT
-  authors       TEXT                 -- JSON array
-  abstract      TEXT
-  year          INTEGER
-  source        TEXT
-  url           TEXT
-  pdf_url       TEXT
-  doi           TEXT
-  citation_count INTEGER
-  venue         TEXT
-  status        TEXT DEFAULT 'pending'   -- pending | classified | analyzed
-  search_query  TEXT                 -- what query found this paper
-  created_at    TEXT DEFAULT (datetime('now'))
-  updated_at    TEXT DEFAULT (datetime('now'))
-"""
+"""Paper storage — connection, schema, path generation, CRUD, and dedup."""
 
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 
-from .state import PaperRecord
+from literature_search.state import PaperRecord
+
+# ── Paths ──────────────────────────────────────────────────────────────────
 
 DEFAULT_DB = Path(__file__).parent.parent / "papers.db"
+DB_SAVE_DIR = Path(__file__).resolve().parent.parent / "db_save"
 
 
-def dedup_key(paper: PaperRecord) -> str:
-    """Return a dedup key: DOI (normalized) or sha1(title)."""
-    if paper.get("doi"):
-        return paper["doi"].strip().lower()
-    return hashlib.sha1(paper["title"].strip().lower().encode()).hexdigest()
+def make_db_path(keywords: list[str]) -> Path:
+    """Generate a per-run DB path: db_save/{slug}_{timestamp}.db"""
+    slug = "_".join(keywords[:3])
+    slug = re.sub(r'[^\w\-]+', '_', slug)
+    slug = slug[:60].strip('_')
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    DB_SAVE_DIR.mkdir(parents=True, exist_ok=True)
+    return DB_SAVE_DIR / f"{slug}_{ts}.db"
+
+
+# ── Connection & schema ────────────────────────────────────────────────────
 
 
 def get_connection(db_path: Path = DEFAULT_DB) -> sqlite3.Connection:
@@ -72,6 +62,16 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_papers_year   ON papers(year);
     """)
     conn.commit()
+
+
+# ── Dedup & CRUD ───────────────────────────────────────────────────────────
+
+
+def dedup_key(paper: PaperRecord) -> str:
+    """Return a dedup key: DOI (normalized) or sha1(title)."""
+    if paper.get("doi"):
+        return paper["doi"].strip().lower()
+    return hashlib.sha1(paper["title"].strip().lower().encode()).hexdigest()
 
 
 def save_papers(
@@ -133,11 +133,11 @@ def load_papers(
     return [_row_to_paper(r) for r in rows]
 
 
-def update_status(dedup_key: str, status: str, db_path: Path = DEFAULT_DB) -> None:
+def update_status(dedup_key_val: str, status: str, db_path: Path = DEFAULT_DB) -> None:
     with get_connection(db_path) as conn:
         conn.execute(
             "UPDATE papers SET status=?, updated_at=datetime('now') WHERE dedup_key=?",
-            (status, dedup_key),
+            (status, dedup_key_val),
         )
         conn.commit()
 
