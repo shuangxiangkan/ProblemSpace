@@ -15,6 +15,7 @@ import logging
 from pathlib import Path
 
 from literature_search import search
+from utils.show_graph import write_project_graphs
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logging.getLogger("arxiv").setLevel(logging.WARNING)
@@ -35,7 +36,16 @@ def main():
                         help="Max results per source (default: 20)")
     parser.add_argument("--output", type=str, default=None,
                         help="Save results to JSON file")
+    parser.add_argument("--no-graph-output", action="store_true",
+                        help="Do not export LangGraph graph files")
+    parser.add_argument("--graph-format", nargs="+",
+                        choices=["mermaid", "html", "png"], default=["png"],
+                        help="Graph export format(s) when graph output is enabled")
     args = parser.parse_args()
+
+    if not args.no_graph_output:
+        graph_paths = write_project_graphs(output_formats=args.graph_format)
+        logger.info("Exported LangGraph definitions to: %s", ", ".join(str(path) for path in graph_paths))
 
     if args.describe:
         # LLM-assisted flow: problem_analysis → merge → literature_search
@@ -49,6 +59,7 @@ def main():
             required_keywords=[],
             optional_keywords=[],
             keywords=[],
+            raw_papers=[],
             papers=[],
             errors=[],
         ))

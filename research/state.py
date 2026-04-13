@@ -19,7 +19,8 @@ class MainResearchState(TypedDict):
 
     # ── Transition node output ─────────────────────────────────────────────
     keywords: list[str]             # merged list fed into literature_search
+    raw_papers: list[PaperRecord]   # intermediate cross-source results before dedup
 
     # ── Step 2: literature_search subgraph output ──────────────────────────
-    papers: Annotated[list[PaperRecord], operator.add]
+    papers: list[PaperRecord]
     errors: Annotated[list[str], operator.add]

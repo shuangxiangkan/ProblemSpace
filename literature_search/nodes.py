@@ -58,7 +58,7 @@ def search_arxiv(state: PaperSearchState) -> dict:
             logger.error("[arXiv] '%s' error: %s", kw, exc)
 
     logger.info("[arXiv] Done — %d total (after dedup).", len(papers))
-    return {"papers": papers, "errors": errors}
+    return {"raw_papers": papers, "errors": errors}
 
 
 # ── Semantic Scholar ────────────────────────────────────────────────────────
@@ -135,7 +135,7 @@ def search_semantic_scholar(state: PaperSearchState) -> dict:
             logger.error("[Semantic Scholar] '%s' error: %s", kw, exc)
 
     logger.info("[Semantic Scholar] Done — %d total (after dedup).", len(papers))
-    return {"papers": papers, "errors": errors}
+    return {"raw_papers": papers, "errors": errors}
 
 
 # ── OpenAlex ────────────────────────────────────────────────────────────────
@@ -208,4 +208,4 @@ def search_openalex(state: PaperSearchState) -> dict:
             logger.error("[OpenAlex] '%s' error: %s", kw, exc)
 
     logger.info("[OpenAlex] Done — %d total (after dedup).", len(papers))
-    return {"papers": papers, "errors": errors}
+    return {"raw_papers": papers, "errors": errors}

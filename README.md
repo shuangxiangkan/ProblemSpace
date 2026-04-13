@@ -81,7 +81,7 @@ python main.py "fuzzing seed generation" --max 20 --output results.json
 ```python
 from literature_search import search, load_papers, update_status
 
-# Run the search graph: arXiv → Semantic Scholar → OpenAlex → SQLite
+# Run the search graph: arXiv / Semantic Scholar / OpenAlex → dedup → SQLite
 papers = search(["dragonfly fault tolerance", "fault-tolerant dragonfly"], max_results_per_source=20)
 
 # Query DB — fetch all pending papers for LLM analysis
@@ -90,6 +90,40 @@ pending = load_papers(status="pending")
 # After LLM classifies a paper, update its status
 update_status(paper["doi"], "classified")
 ```
+
+### View LangGraph structure
+
+```bash
+source .venv/bin/activate
+
+# View the top-level pipeline as ASCII
+python utils/show_graph.py research --format ascii
+
+# View the literature search subgraph as Mermaid
+python utils/show_graph.py literature_search --format mermaid
+
+# View the fully expanded top-level research graph
+python utils/show_graph.py research --format mermaid
+
+# Save Mermaid output to a file
+python utils/show_graph.py literature_search --format mermaid --output literature_search.mmd
+
+# Export a directly viewable HTML file
+python utils/show_graph.py literature_search --format html --output literature_search.html
+
+# Export a PNG image
+python utils/show_graph.py literature_search --format png --output literature_search.png
+
+# Export all graphs to the visualization directory
+python utils/show_graph.py
+
+# Disable subgraph expansion explicitly
+python utils/show_graph.py research --format mermaid --no-xray
+```
+
+`main.py` now exports PNG graph files to `visualization/` by default.
+Use `--graph-format mermaid` or `--graph-format html png` to change or extend the exported formats, or `--no-graph-output` to disable this behavior.
+The exported `research` graph expands its subgraphs by default so the top-level pipeline shows the full flow.
 
 ### Paper status lifecycle
 
@@ -111,7 +145,10 @@ user description (natural language)
   merge_keywords            required + optional → single keyword list
         │
         ▼
-  literature_search         arXiv → Semantic Scholar → OpenAlex (per-keyword OR search)
+  literature_search         arXiv / Semantic Scholar / OpenAlex (parallel per-keyword OR search)
+        │
+        ▼
+  dedup_papers              Cross-source dedup before persistence
         │
         ▼
   save_to_db                SQLite dedup & persist

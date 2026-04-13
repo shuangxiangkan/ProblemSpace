@@ -18,6 +18,7 @@ def search(keywords: list[str], max_results_per_source: int = 20) -> list[PaperR
     result = graph.invoke({
         "keywords": keywords,
         "max_results_per_source": max_results_per_source,
+        "raw_papers": [],
         "papers": [],
         "errors": [],
     })
