@@ -16,7 +16,7 @@ ProblemSpace/
 ├── papers.db                 # SQLite 文献库（已加入 .gitignore）
 ├── problem-space.md          # 方法论与设计笔记
 │
-├── models/                   # LLM 工厂（DeepSeek / OpenAI / GLM）
+├── models/                   # LLM 工厂（DeepSeek / OpenAI）
 │   └── __init__.py           # get_llm(provider)
 │
 ├── problem_analysis/         # 子模块 1：LLM 关键词提取
@@ -156,10 +156,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 OPENAI_API_KEY=...      # OpenAI — https://platform.openai.com/
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_BASE_URL=https://api.openai.com/v1
-GLM_API_KEY=...         # 智谱 GLM — 可选备用 provider
-GLM_MODEL=GLM-4.7-FlashX
-GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
-LLM_PROVIDER=deepseek   # deepseek | openai | glm
+LLM_PROVIDER=deepseek   # deepseek | openai
 ```
 
 `S2_API_KEY` 可选但推荐填写，否则请求会受速率限制（HTTP 429）。  

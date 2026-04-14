@@ -16,7 +16,7 @@ ProblemSpace/
 ├── papers.db                 # SQLite — all retrieved papers (git-ignored)
 ├── problem-space.md          # Methodology & design notes
 │
-├── models/                   # LLM factory (DeepSeek / OpenAI / GLM)
+├── models/                   # LLM factory (DeepSeek / OpenAI)
 │   └── __init__.py           # get_llm(provider)
 │
 ├── problem_analysis/         # Sub-module 1: LLM keyword extraction
@@ -190,10 +190,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 OPENAI_API_KEY=...      # OpenAI — https://platform.openai.com/
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_BASE_URL=https://api.openai.com/v1
-GLM_API_KEY=...         # Zhipu GLM — optional alternate provider
-GLM_MODEL=GLM-4.7-FlashX
-GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
-LLM_PROVIDER=deepseek   # deepseek | openai | glm
+LLM_PROVIDER=deepseek   # deepseek | openai
 ```
 
 `S2_API_KEY` is optional but recommended — without it requests are rate-limited (HTTP 429).  
