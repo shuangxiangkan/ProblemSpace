@@ -8,7 +8,9 @@ import time
 import arxiv
 import requests
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
+from models import get_llm
 from .state import PaperRecord, PaperSearchState
 
 load_dotenv()
@@ -235,3 +237,91 @@ def dedup_papers(state: PaperSearchState) -> dict:
         logger.info("[Dedup] Removed %d cross-source duplicates.", removed)
 
     return {"papers": deduped}
+
+
+# ── Relevance Filter ───────────────────────────────────────────────────────
+
+_FILTER_BATCH_SIZE = 8
+
+
+class PaperKeepSelection(BaseModel):
+    keep_indices: list[int] = Field(
+        description="0-based indices of papers that should be kept in the current batch."
+    )
+
+
+def _format_paper_batch(papers: list[PaperRecord]) -> str:
+    chunks: list[str] = []
+    for index, paper in enumerate(papers):
+        chunks.append(
+            "\n".join([
+                f"Paper #{index}",
+                f"Title: {paper.get('title', '').strip()}",
+                f"Abstract: {(paper.get('abstract') or '').strip()}",
+                f"Venue: {(paper.get('venue') or '').strip()}",
+                f"Year: {paper.get('year')}",
+                f"Source: {paper.get('source', '').strip()}",
+            ])
+        )
+    return "\n\n".join(chunks)
+
+
+def filter_papers(state: PaperSearchState) -> dict:
+    """Keep only papers whose title/abstract are relevant to the original query."""
+    papers = state["papers"]
+    if not papers:
+        return {}
+
+    query_description = state.get("query_description") or " ".join(state.get("keywords", []))
+    llm = get_llm("glm", thinking_type="disabled")
+    structured_llm = llm.with_structured_output(PaperKeepSelection, method="function_calling")
+
+    filtered: list[PaperRecord] = []
+    errors: list[str] = []
+    removed = 0
+
+    system_prompt = """You are filtering academic search results for relevance.
+
+Given the original research request and a batch of candidate papers, decide whether each paper should be kept.
+
+Rules:
+- Keep a paper only if its title and abstract are clearly relevant to the user's research request.
+- Prefer precision over recall: if relevance is weak, indirect, or generic, remove it.
+- Judge based on the user's original request, not only keyword overlap.
+- If the abstract is missing, use the title and venue, but still be conservative.
+- Return only the indices of papers that should be kept.
+"""
+
+    for start in range(0, len(papers), _FILTER_BATCH_SIZE):
+        batch = papers[start:start + _FILTER_BATCH_SIZE]
+        try:
+            result: PaperKeepSelection = structured_llm.invoke([
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        f"Original research request:\n{query_description}\n\n"
+                        f"Candidate papers:\n{_format_paper_batch(batch)}"
+                    ),
+                },
+            ])
+        except Exception as exc:
+            errors.append(f"GLM relevance filter batch[{start}:{start + len(batch)}]: {exc}")
+            logger.error("[Filter] batch[%d:%d] failed: %s", start, start + len(batch), exc)
+            filtered.extend(batch)
+            continue
+
+        keep_indices = {
+            index for index in result.keep_indices if 0 <= index < len(batch)
+        }
+        for index, paper in enumerate(batch):
+            if index in keep_indices:
+                filtered.append(paper)
+            else:
+                removed += 1
+
+    if removed:
+        logger.info("[Filter] Removed %d low-relevance papers.", removed)
+    logger.info("[Filter] Kept %d / %d papers after relevance filtering.", len(filtered), len(papers))
+
+    return {"papers": filtered, "errors": errors}

@@ -19,6 +19,7 @@ class PaperRecord(TypedDict):
 
 
 class PaperSearchState(TypedDict):
+    query_description: str
     keywords: list[str]
     max_results_per_source: int
     raw_papers: Annotated[list[PaperRecord], operator.add]

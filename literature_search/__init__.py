@@ -11,9 +11,14 @@ __all__ = [
 ]
 
 
-def search(keywords: list[str], max_results_per_source: int = 20) -> list[PaperRecord]:
-    """Search arXiv → Semantic Scholar → OpenAlex and return merged results."""
+def search(
+    keywords: list[str],
+    max_results_per_source: int = 20,
+    query_description: str | None = None,
+) -> list[PaperRecord]:
+    """Search, dedup, filter, and return literature results."""
     result = _get_graph().invoke({
+        "query_description": query_description or " ".join(keywords),
         "keywords": keywords,
         "max_results_per_source": max_results_per_source,
         "raw_papers": [],

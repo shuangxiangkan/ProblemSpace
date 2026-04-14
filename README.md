@@ -16,7 +16,7 @@ ProblemSpace/
 ├── papers.db                 # SQLite — all retrieved papers (git-ignored)
 ├── problem-space.md          # Methodology & design notes
 │
-├── models/                   # LLM factory (DeepSeek / OpenAI)
+├── models/                   # LLM factory (DeepSeek / OpenAI / GLM)
 │   └── __init__.py           # get_llm(provider)
 │
 ├── problem_analysis/         # Sub-module 1: LLM keyword extraction
@@ -27,7 +27,7 @@ ProblemSpace/
 │
 ├── literature_search/        # Sub-module 2: Paper retrieval
 │   ├── state.py              # PaperRecord, PaperSearchState
-│   ├── nodes.py              # arXiv / Semantic Scholar / OpenAlex nodes
+│   ├── nodes.py              # search nodes + dedup + GLM relevance filter
 │   ├── graph.py              # build_literature_search_graph()
 │   ├── storage.py            # SQLite persistence + dedup
 │   └── __init__.py
@@ -81,7 +81,7 @@ python main.py "fuzzing seed generation" --max 20 --output results.json
 ```python
 from literature_search import search, load_papers, update_status
 
-# Run the search graph: arXiv / Semantic Scholar / OpenAlex → dedup → SQLite
+# Run the search graph: arXiv / Semantic Scholar / OpenAlex → dedup → relevance filter → SQLite
 papers = search(["dragonfly fault tolerance", "fault-tolerant dragonfly"], max_results_per_source=20)
 
 # Query DB — fetch all pending papers for LLM analysis
@@ -151,6 +151,9 @@ user description (natural language)
   dedup_papers              Cross-source dedup before persistence
         │
         ▼
+  filter_papers    GLM-4.7-FlashX filters out off-topic papers using title/abstract
+        │
+        ▼
   save_to_db                SQLite dedup & persist
 ```
 
@@ -179,9 +182,19 @@ Copy `.env.example` to `.env` and fill in your keys:
 ```
 S2_API_KEY=...          # Semantic Scholar — apply at https://www.semanticscholar.org/product/api
 DEEPSEEK_API_KEY=...    # DeepSeek — https://platform.deepseek.com/
-LLM_PROVIDER=deepseek   # deepseek | openai
+DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+OPENAI_API_KEY=...      # OpenAI — https://platform.openai.com/
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_BASE_URL=https://api.openai.com/v1
+GLM_API_KEY=...         # Zhipu GLM — used for post-search relevance filtering
+GLM_MODEL=GLM-4.7-FlashX
+GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
+LLM_PROVIDER=deepseek   # deepseek | openai | glm
 ```
 
 `S2_API_KEY` is optional but recommended — without it requests are rate-limited (HTTP 429).  
 `DEEPSEEK_API_KEY` is required for `--describe` mode.
+`GLM_API_KEY` is required for the post-search relevance filtering step.
+All model providers now use the same env naming scheme: `*_API_KEY`, `*_MODEL`, `*_BASE_URL`.
 
