@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import time
@@ -209,3 +210,28 @@ def search_openalex(state: PaperSearchState) -> dict:
 
     logger.info("[OpenAlex] Done — %d total (after dedup).", len(papers))
     return {"raw_papers": papers, "errors": errors}
+
+
+# ── Dedup ──────────────────────────────────────────────────────────────────
+
+
+def dedup_papers(state: PaperSearchState) -> dict:
+    """Remove cross-source duplicates from raw_papers."""
+    deduped: list[PaperRecord] = []
+    seen: set[str] = set()
+
+    for paper in state["raw_papers"]:
+        if paper.get("doi"):
+            key = paper["doi"].strip().lower()
+        else:
+            key = hashlib.sha1(paper["title"].strip().lower().encode()).hexdigest()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(paper)
+
+    removed = len(state["raw_papers"]) - len(deduped)
+    if removed:
+        logger.info("[Dedup] Removed %d cross-source duplicates.", removed)
+
+    return {"papers": deduped}

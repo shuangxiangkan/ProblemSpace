@@ -3,7 +3,6 @@
 from database.store import (
     DEFAULT_DB,
     DB_SAVE_DIR,
-    dedup_key,
     get_connection,
     load_papers,
     make_db_path,
@@ -15,7 +14,7 @@ from database.store import (
 
 
 def __getattr__(name: str):
-    if name in ("dedup_papers", "save_to_db"):
+    if name == "save_to_db":
         from database import ops
         return getattr(ops, name)
     raise AttributeError(f"module 'database' has no attribute {name!r}")
@@ -24,8 +23,6 @@ def __getattr__(name: str):
 __all__ = [
     "DEFAULT_DB",
     "DB_SAVE_DIR",
-    "dedup_key",
-    "dedup_papers",
     "get_connection",
     "load_papers",
     "make_db_path",

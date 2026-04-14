@@ -9,27 +9,6 @@ from literature_search.state import PaperSearchState
 logger = logging.getLogger(__name__)
 
 
-def dedup_papers(state: PaperSearchState) -> dict:
-    """Remove cross-source duplicates from raw_papers."""
-    from database.store import dedup_key
-
-    deduped: list[dict] = []
-    seen: set[str] = set()
-
-    for paper in state["raw_papers"]:
-        key = dedup_key(paper)
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(paper)
-
-    removed = len(state["raw_papers"]) - len(deduped)
-    if removed:
-        logger.info("[Dedup] Removed %d cross-source duplicates.", removed)
-
-    return {"papers": deduped}
-
-
 def save_to_db(state: PaperSearchState) -> dict:
     """Persist deduplicated papers to a per-run SQLite database."""
     from database.store import save_papers

@@ -1,4 +1,4 @@
-"""Paper storage — connection, schema, path generation, CRUD, and dedup."""
+"""Paper storage — connection, schema, path generation, and CRUD."""
 
 from __future__ import annotations
 
@@ -64,11 +64,10 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-# ── Dedup & CRUD ───────────────────────────────────────────────────────────
+# ── CRUD ───────────────────────────────────────────────────────────────────
 
 
-def dedup_key(paper: PaperRecord) -> str:
-    """Return a dedup key: DOI (normalized) or sha1(title)."""
+def _dedup_key(paper: PaperRecord) -> str:
     if paper.get("doi"):
         return paper["doi"].strip().lower()
     return hashlib.sha1(paper["title"].strip().lower().encode()).hexdigest()
@@ -83,7 +82,7 @@ def save_papers(
     inserted = skipped = 0
     with get_connection(db_path) as conn:
         for p in papers:
-            key = dedup_key(p)
+            key = _dedup_key(p)
             try:
                 conn.execute(
                     """

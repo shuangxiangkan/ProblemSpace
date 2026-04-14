@@ -1,11 +1,12 @@
 from langgraph.graph import END, START, StateGraph
 
 from .nodes import (
+    dedup_papers,
     search_arxiv,
     search_openalex,
     search_semantic_scholar,
 )
-from database.ops import dedup_papers, save_to_db
+from database.ops import save_to_db
 from .state import PaperSearchState
 
 
