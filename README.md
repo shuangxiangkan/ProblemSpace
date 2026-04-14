@@ -27,7 +27,7 @@ ProblemSpace/
 │
 ├── literature_search/        # Sub-module 2: Paper retrieval
 │   ├── state.py              # PaperRecord, PaperSearchState
-│   ├── nodes.py              # search nodes + dedup + GLM relevance filter
+│   ├── nodes.py              # search nodes + dedup + DeepSeek relevance filter
 │   ├── graph.py              # build_literature_search_graph()
 │   ├── storage.py            # SQLite persistence + dedup
 │   └── __init__.py
@@ -151,7 +151,7 @@ user description (natural language)
   dedup_papers              Cross-source dedup before persistence
         │
         ▼
-  filter_papers    GLM-4.7-FlashX filters out off-topic papers using title/abstract
+      filter_papers    DeepSeek filters out off-topic papers using title/abstract
         │
         ▼
   save_to_db                SQLite dedup & persist
@@ -187,14 +187,13 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 OPENAI_API_KEY=...      # OpenAI — https://platform.openai.com/
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_BASE_URL=https://api.openai.com/v1
-GLM_API_KEY=...         # Zhipu GLM — used for post-search relevance filtering
+GLM_API_KEY=...         # Zhipu GLM — optional alternate provider
 GLM_MODEL=GLM-4.7-FlashX
 GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
 LLM_PROVIDER=deepseek   # deepseek | openai | glm
 ```
 
 `S2_API_KEY` is optional but recommended — without it requests are rate-limited (HTTP 429).  
-`DEEPSEEK_API_KEY` is required for `--describe` mode.
-`GLM_API_KEY` is required for the post-search relevance filtering step.
+`DEEPSEEK_API_KEY` is required for `--describe` mode and post-search relevance filtering.
 All model providers now use the same env naming scheme: `*_API_KEY`, `*_MODEL`, `*_BASE_URL`.
 

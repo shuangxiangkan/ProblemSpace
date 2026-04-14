@@ -18,6 +18,7 @@ class MainResearchState(TypedDict):
     optional_keywords: list[str]    # nice-to-have / broadening keywords
 
     # ── Transition node output ─────────────────────────────────────────────
+    results_save_dir: str           # per-run folder for intermediate result snapshots
     keywords: list[str]             # merged list fed into literature_search
 
     # ── Step 2: literature_search subgraph output ──────────────────────────

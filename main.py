@@ -50,6 +50,7 @@ def main():
             optional_keywords=[],
             keywords=[],
             papers=[],
+            errors=[],
         ))
         papers = result["papers"]
         for err in result.get("errors", []):

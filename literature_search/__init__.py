@@ -2,6 +2,7 @@ import logging
 
 from .graph import build_literature_search_graph, _get_graph
 from .state import PaperRecord, PaperSearchState
+from utils import create_results_run_dir
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +18,12 @@ def search(
     query_description: str | None = None,
 ) -> list[PaperRecord]:
     """Search, dedup, filter, and return literature results."""
+    resolved_query = query_description or " ".join(keywords)
+    results_run_dir = create_results_run_dir(resolved_query, keywords)
+
     result = _get_graph().invoke({
-        "query_description": query_description or " ".join(keywords),
+        "query_description": resolved_query,
+        "results_save_dir": str(results_run_dir),
         "keywords": keywords,
         "max_results_per_source": max_results_per_source,
         "raw_papers": [],

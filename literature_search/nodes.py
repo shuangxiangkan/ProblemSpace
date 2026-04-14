@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from models import get_llm
 from prompts import load_prompt
+from utils import save_paper_snapshot
 from .state import PaperRecord, PaperSearchState
 
 load_dotenv()
@@ -220,6 +221,10 @@ def search_openalex(state: PaperSearchState) -> dict:
 
 def dedup_papers(state: PaperSearchState) -> dict:
     """Remove cross-source duplicates from raw_papers."""
+    total_raw = len(state["raw_papers"])
+    logger.info("[Dedup] Starting deduplication for %d papers ...", total_raw)
+    save_paper_snapshot(state["results_save_dir"], "raw_papers", state["raw_papers"])
+
     deduped: list[PaperRecord] = []
     seen: set[str] = set()
 
@@ -236,6 +241,9 @@ def dedup_papers(state: PaperSearchState) -> dict:
     removed = len(state["raw_papers"]) - len(deduped)
     if removed:
         logger.info("[Dedup] Removed %d cross-source duplicates.", removed)
+    logger.info("[Dedup] Done — kept %d / %d papers.", len(deduped), total_raw)
+
+    save_paper_snapshot(state["results_save_dir"], "deduped_papers", deduped)
 
     return {"papers": deduped}
 
@@ -275,15 +283,29 @@ def filter_papers(state: PaperSearchState) -> dict:
         return {}
 
     query_description = state.get("query_description") or " ".join(state.get("keywords", []))
-    llm = get_llm("glm", thinking_type="disabled")
+    llm = get_llm("deepseek")
     structured_llm = llm.with_structured_output(PaperKeepSelection, method="function_calling")
 
     filtered: list[PaperRecord] = []
     errors: list[str] = []
     removed = 0
+    total_batches = (len(papers) + _FILTER_BATCH_SIZE - 1) // _FILTER_BATCH_SIZE
+
+    logger.info(
+        "[Filter] Starting relevance filtering for %d papers in %d batch(es) ...",
+        len(papers),
+        total_batches,
+    )
 
     for start in range(0, len(papers), _FILTER_BATCH_SIZE):
         batch = papers[start:start + _FILTER_BATCH_SIZE]
+        batch_number = start // _FILTER_BATCH_SIZE + 1
+        logger.info(
+            "[Filter] Batch %d/%d — evaluating %d papers ...",
+            batch_number,
+            total_batches,
+            len(batch),
+        )
         try:
             result: PaperKeepSelection = structured_llm.invoke([
                 {"role": "system", "content": _FILTER_SYSTEM_PROMPT},
@@ -296,7 +318,7 @@ def filter_papers(state: PaperSearchState) -> dict:
                 },
             ])
         except Exception as exc:
-            errors.append(f"GLM relevance filter batch[{start}:{start + len(batch)}]: {exc}")
+            errors.append(f"DeepSeek relevance filter batch[{start}:{start + len(batch)}]: {exc}")
             logger.error("[Filter] batch[%d:%d] failed: %s", start, start + len(batch), exc)
             filtered.extend(batch)
             continue
@@ -310,8 +332,18 @@ def filter_papers(state: PaperSearchState) -> dict:
             else:
                 removed += 1
 
+        logger.info(
+            "[Filter] Batch %d/%d done — kept %d / %d papers.",
+            batch_number,
+            total_batches,
+            len(keep_indices),
+            len(batch),
+        )
+
     if removed:
         logger.info("[Filter] Removed %d low-relevance papers.", removed)
     logger.info("[Filter] Kept %d / %d papers after relevance filtering.", len(filtered), len(papers))
+
+    save_paper_snapshot(state["results_save_dir"], "filtered_papers", filtered)
 
     return {"papers": filtered, "errors": errors}
