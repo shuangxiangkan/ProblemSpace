@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 from models import get_llm
+from prompts import load_prompt
 from .state import PaperRecord, PaperSearchState
 
 load_dotenv()
@@ -242,6 +243,7 @@ def dedup_papers(state: PaperSearchState) -> dict:
 # ── Relevance Filter ───────────────────────────────────────────────────────
 
 _FILTER_BATCH_SIZE = 8
+_FILTER_SYSTEM_PROMPT = load_prompt("paper_filter_system.txt")
 
 
 class PaperKeepSelection(BaseModel):
@@ -280,23 +282,11 @@ def filter_papers(state: PaperSearchState) -> dict:
     errors: list[str] = []
     removed = 0
 
-    system_prompt = """You are filtering academic search results for relevance.
-
-Given the original research request and a batch of candidate papers, decide whether each paper should be kept.
-
-Rules:
-- Keep a paper only if its title and abstract are clearly relevant to the user's research request.
-- Prefer precision over recall: if relevance is weak, indirect, or generic, remove it.
-- Judge based on the user's original request, not only keyword overlap.
-- If the abstract is missing, use the title and venue, but still be conservative.
-- Return only the indices of papers that should be kept.
-"""
-
     for start in range(0, len(papers), _FILTER_BATCH_SIZE):
         batch = papers[start:start + _FILTER_BATCH_SIZE]
         try:
             result: PaperKeepSelection = structured_llm.invoke([
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": _FILTER_SYSTEM_PROMPT},
                 {
                     "role": "user",
                     "content": (
