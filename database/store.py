@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -18,13 +17,19 @@ DB_SAVE_DIR = Path(__file__).resolve().parent.parent / "db_save"
 
 
 def make_db_path(keywords: list[str]) -> Path:
-    """Generate a per-run DB path: db_save/{slug}_{timestamp}.db"""
-    slug = "_".join(keywords[:3])
-    slug = re.sub(r'[^\w\-]+', '_', slug)
-    slug = slug[:60].strip('_')
+    """Generate a per-run DB path: db_save/{timestamp}[_{suffix}].db."""
+    del keywords
+
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     DB_SAVE_DIR.mkdir(parents=True, exist_ok=True)
-    return DB_SAVE_DIR / f"{slug}_{ts}.db"
+
+    db_path = DB_SAVE_DIR / f"{ts}.db"
+    suffix = 1
+    while db_path.exists():
+        db_path = DB_SAVE_DIR / f"{ts}_{suffix:02d}.db"
+        suffix += 1
+
+    return db_path
 
 
 # ── Connection & schema ────────────────────────────────────────────────────

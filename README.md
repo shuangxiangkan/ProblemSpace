@@ -27,7 +27,7 @@ ProblemSpace/
 │
 ├── literature_search/        # Sub-module 2: Paper retrieval
 │   ├── state.py              # PaperRecord, PaperSearchState
-│   ├── nodes.py              # search nodes + dedup + DeepSeek relevance filter
+│   ├── nodes.py              # search nodes + dedup + DeepSeek relevance filter + PDF download
 │   ├── graph.py              # build_literature_search_graph()
 │   ├── storage.py            # SQLite persistence + dedup
 │   └── __init__.py
@@ -151,10 +151,13 @@ user description (natural language)
   dedup_papers              Cross-source dedup before persistence
         │
         ▼
-      filter_papers    DeepSeek filters out off-topic papers using title/abstract
+        filter_papers    DeepSeek filters out off-topic papers using title/abstract
         │
         ▼
   save_to_db                SQLite dedup & persist
+              │
+              ▼
+        download_pdfs            Download PDFs of filtered papers into results_save/<run>/pdfs
 ```
 
 ---

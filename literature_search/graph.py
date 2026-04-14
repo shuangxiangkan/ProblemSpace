@@ -2,6 +2,7 @@ from langgraph.graph import END, START, StateGraph
 
 from .nodes import (
     dedup_papers,
+    download_pdfs,
     filter_papers,
     search_arxiv,
     search_openalex,
@@ -20,6 +21,7 @@ def build_literature_search_graph():
     builder.add_node("dedup_papers", dedup_papers)
     builder.add_node("filter_papers", filter_papers)
     builder.add_node("save_to_db", save_to_db)
+    builder.add_node("download_pdfs", download_pdfs)
 
     builder.add_edge(START, "arxiv")
     builder.add_edge(START, "semantic_scholar")
@@ -29,7 +31,8 @@ def build_literature_search_graph():
     builder.add_edge("openalex", "dedup_papers")
     builder.add_edge("dedup_papers", "filter_papers")
     builder.add_edge("filter_papers", "save_to_db")
-    builder.add_edge("save_to_db", END)
+    builder.add_edge("save_to_db", "download_pdfs")
+    builder.add_edge("download_pdfs", END)
 
     return builder.compile()
 

@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 from models import get_llm
 from prompts import load_prompt
-from utils import save_paper_snapshot
+from utils import download_paper_pdfs, save_paper_snapshot, save_pdf_failures
 from .state import PaperRecord, PaperSearchState
 
 load_dotenv()
@@ -347,3 +347,32 @@ def filter_papers(state: PaperSearchState) -> dict:
     save_paper_snapshot(state["results_save_dir"], "filtered_papers", filtered)
 
     return {"papers": filtered, "errors": errors}
+
+
+# ── PDF Download ───────────────────────────────────────────────────────────
+
+
+def download_pdfs(state: PaperSearchState) -> dict:
+    """Download PDFs for the filtered papers into the per-run results directory."""
+    papers = state["papers"]
+    if not papers:
+        logger.info("[PDF] No filtered papers to download.")
+        return {}
+
+    logger.info("[PDF] Starting PDF download for %d filtered papers ...", len(papers))
+    manifest = download_paper_pdfs(state["results_save_dir"], papers)
+    failure_path = save_pdf_failures(state["results_save_dir"], manifest)
+
+    downloaded = sum(1 for item in manifest if item["status"] == "downloaded")
+    skipped = sum(1 for item in manifest if item["status"] == "skipped_no_pdf_url")
+    failed = sum(1 for item in manifest if item["status"] == "failed")
+
+    logger.info(
+        "[PDF] Done — downloaded=%d, skipped=%d, failed=%d. Failures: %s",
+        downloaded,
+        skipped,
+        failed,
+        failure_path,
+    )
+
+    return {}
