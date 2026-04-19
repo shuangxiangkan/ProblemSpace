@@ -1,0 +1,66 @@
+# Requirements and Design
+
+- Requirements elicitation and management, traceability analysis
+- Software architecture and design
+- Modeling and model-driven engineering
+- Software product lines
+- Component-based or service-oriented systems
+- Object-oriented or aspect-oriented systems
+
+# Testing and Analysis
+
+- Regression, mutation, and model-based testing
+- System, unit, and integration testing
+- Black-, grey-, and white-box fuzzing
+- Automated program repair and synthesis
+- Static and dynamic analysis
+- Empirical program analysis
+
+# Maintenance and Evolution
+
+- Debugging and fault-localization
+- Refactoring and reengineering
+- Reverse engineering
+- Software reuse
+- API design and management
+
+# Human and Social Aspects
+
+- Software engineering processes (e.g., agile, DevOps)
+- Green and sustainable technologies
+- Software engineering ethics and values
+- Software economics
+- Systematic code review and inspection
+- Program comprehension and visualization
+- Crowd-based and collaborative software engineering
+- Human-computer interface
+
+# AI and Software Engineering
+
+- Autonomous and self-adapting systems
+- Search-based software engineering
+- Recommender systems
+- AI4SE
+- SE4AI
+
+# Software Analytics
+
+- Mining software repositories
+- Analysis of mobile apps, app stores
+- Data-driven user experience understanding and improvement
+- Data-driven decision making in software engineering
+- Software metrics (and measurements)
+
+# Formal Aspects of Software Engineering
+
+- Formal methods and model checking
+- Programming languages
+- Domain-specific or specification languages
+- Software validation and verification
+
+# Security and Other Non-Functional Properties
+
+- Security and privacy
+- Dependability and safety
+- Reliability and availability
+- Performance

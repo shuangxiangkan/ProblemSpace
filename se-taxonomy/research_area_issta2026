@@ -1,0 +1,70 @@
+# AI for Analysis and Testing
+
+- Agentic or LLM-based specification inference
+- Agentic or LLM-based code generation
+- Agentic or LLM-based software testing
+- Agentic or LLM-based program analysis
+- Agentic or LLM-based program repair
+
+# Analysis and Testing for AI
+
+- Testing and analysis of agents or agentic systems
+- Testing and analysis of ML-model/software hybrid systems
+- Testing and analysis of ML-components and libraries
+- Fairness, safety, trustworthiness
+
+# Software Test Generation
+
+- Regression, mutation, and model-based testing
+- System, unit, and integration testing
+- Black-, grey-, and white-box fuzzing
+- Search-based software testing
+- Symbolic and concolic execution
+
+# Software Debugging and Repair
+
+- Fault localization and debugging
+- Search-based program repair
+- Constraint-based program repair
+- Reverse engineering
+- Program comprehension
+- Specification inference
+
+# Software Verification and Analysis Techniques
+
+- Static, dynamic, and empirical program analysis
+- Program verification, runtime verification, and model checking
+- Refactoring, transformation, and reduction
+- Testing and analysis in CI/CD or deployment
+- Testing and analysis of evolving systems
+- Mutation testing and analysis
+- Ecosystem-scale analysis
+- Non-functional properties (dependability, safety, reliability, and performance)
+
+# Analysis and Testing for Security
+
+- Binary analysis, lifting, and instrumentation
+- Vulnerability detection (e.g., sanitizers)
+- Side channels and data leakage
+- Supply chain analysis
+- Malware analysis
+- Obfuscation
+
+# Domain-specific Analysis and Testing
+
+- Testing and analysis of blockchain systems or smart contracts
+- Testing and analysis of concurrent or distributed systems
+- Testing and analysis of cyber physical or autonomous systems
+- Testing and analysis of database or operating systems
+- Testing and analysis of numerical and scientific applications
+- Testing and analysis of testing or analysis tools
+- Testing and analysis of web, mobile, or quantum applications
+
+# Empirical and User Studies of Testing and Analysis Processes
+
+- Software engineering processes (e.g., agile, DevOps)
+- Green and sustainable technologies
+- Ethics and values
+- Software economics
+- Systematic code review and inspection
+- Program comprehension and visualization

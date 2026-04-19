@@ -1,0 +1,105 @@
+# AI for Software Engineering
+
+- AI-enabled recommender systems for automated SE (e.g., code generation, program repair, AIOps, software composition analysis, etc.)
+- Human-centered AI for SE (e.g., how software engineers can synergistically work with AI agents)
+- Trustworthy AI for SE (e.g., how to provide guarantees, characterize limits, and prevent misuse of AI for SE)
+- Sustainable AI for SE (e.g., how to reduce energy footprint for greener AI for SE)
+- Collaborative AI for SE (e.g., how AI agents collaborate for automating SE)
+- Automating SE tasks with LLM and other foundation models (e.g., large vision model)
+- Efficacy measurement beyond traditional metrics (e.g., accuracy, BLEU, etc.)
+- Prompt engineering for SE (e.g., novel prompt design)
+- AI-assisted software design and model driven engineering (e.g., specification mining, program synthesis, software architectural design)
+
+# Analytics
+
+- Mining software repositories, including version control systems, issue tracking systems, software ecosystems, configurations, app stores, communication platforms, and novel software engineering data sources, to generate insights through various research methods
+- Software visualization
+- Data-driven user experience understanding and improvement
+- Data driven decision making in software engineering
+- Software metrics (and measurements)
+
+# Architecture and Design
+
+- Architecture and design measurement and assessment
+- Software design methodologies, principles, and strategies
+- Theory building for/of software design
+- Architecture quality attributes, such as security, privacy, performance, reliability
+- Modularity and reusability
+- Design and architecture modeling and analysis
+- Architecture recovery
+- Dependency and complexity analysis
+- Distributed architectures, such as microservice, SOA, cloud computing
+- Patterns and anti-patterns
+- Technical debt in design and architecture
+- Architecture refactoring
+- Adaptive architectures
+- Architecture knowledge management
+
+# Dependability and Security
+
+- Formal methods and model checking (excluding solutions focusing solely on hardware)
+- Reliability, availability, and safety
+- Resilience and antifragility
+- Confidentiality, integrity, privacy, and fairness
+- Performance
+- Design for dependability and security
+- Vulnerability detection to enhance software security
+- Dependability and security for embedded and cyber-physical systems
+
+# Evolution
+
+- Evolution and maintenance
+- API design and evolution
+- Release engineering and DevOps
+- Software reuse
+- Refactoring and program differencing
+- Program comprehension
+- Reverse engineering
+- Environments and software development tools
+- Traceability to understand evolution
+
+# Human and Social Aspects
+
+- Focusing on individuals (from program comprehension, workplace stress to job satisfaction and career progression)
+- Focusing on teams (e.g., collocated, distributed, global, virtual; communication and collaboration within a team), communities (e.g., open source, communities of practice) and companies (organization, economics)
+- Focusing on society (e.g., sustainability; diversity and inclusion)
+- Focusing on programming languages, environments, and tools supporting individuals, teams, communities, and companies
+- Focusing on software development processes
+
+# Requirements and Modeling
+
+- Requirements engineering (incl. non-functional requirements)
+- Theoretical requirement foundations
+- Requirements and architecture
+- Feedback, user and requirements management
+- Requirements traceability and dependencies
+- Modeling and model-driven engineering
+- Variability and product lines
+- Systems and software traceability
+- Modeling languages, techniques, and tools
+- Empirical studies on the application of model-based engineering
+- Model-based monitoring and analysis
+
+# Software Engineering for AI
+
+- SE for AI models
+- SE for systems with AI components
+- SE for AI code, libraries, and datasets
+- Engineering autonomic systems and self-healing systems
+- Automated repair of AI models
+- Testing and verification of AI-based systems
+- Validation and user-based evaluation of AI-based systems
+- Requirements engineering for AI-based systems
+
+# Testing and Analysis
+
+- Software testing
+- Automated test generation techniques such as fuzzing, search-based approaches, and symbolic execution
+- Testing and analysis of non-functional properties
+- GUI testing
+- Mobile application testing
+- Program analysis
+- Program synthesis (e.g., constraint based techniques)
+- Program repair
+- Debugging and fault localization
+- Runtime analysis and/or error recovery
